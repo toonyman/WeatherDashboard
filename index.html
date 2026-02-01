@@ -292,14 +292,28 @@
             font-weight: 600;
         }
 
-        .refresh-btn:hover {
-            background: #667eea;
-            color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        /* Hover effects only for devices with hover capability (non-touch) */
+        @media (hover: hover) and (pointer: fine) {
+            .refresh-btn:hover {
+                background: #667eea;
+                color: white;
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            }
+
+            .location .refresh-btn:hover {
+                transform: translateY(-50%);
+            }
         }
 
-        .location .refresh-btn:hover {
-            transform: translateY(-50%);
+        /* Active state for touch devices */
+        .refresh-btn:active {
+            background: #667eea;
+            color: white;
+            transform: scale(0.98);
+        }
+
+        .location .refresh-btn:active {
+            transform: translateY(-50%) scale(0.98);
         }
 
         .info-btn {
@@ -315,9 +329,18 @@
             white-space: nowrap;
         }
 
-        .info-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        /* Hover effects only for devices with hover capability */
+        @media (hover: hover) and (pointer: fine) {
+            .info-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+        }
+
+        /* Active state for touch devices */
+        .info-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
         }
 
         .modal {
