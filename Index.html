@@ -1,0 +1,959 @@
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>날씨 & 미세먼지 대시보드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title .icon {
+            font-size: 1.5rem;
+        }
+
+        .weather-main {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .temperature {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .weather-description {
+            font-size: 1.3rem;
+            color: #666;
+            margin-top: 10px;
+            text-transform: capitalize;
+        }
+
+        .weather-icon {
+            font-size: 5rem;
+            margin: 20px 0;
+        }
+
+        .weather-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .air-quality {
+            text-align: center;
+        }
+
+        .aqi-value {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .aqi-good {
+            color: #00c851;
+        }
+
+        .aqi-moderate {
+            color: #ffbb33;
+        }
+
+        .aqi-unhealthy {
+            color: #ff4444;
+        }
+
+        .aqi-very-unhealthy {
+            color: #cc0000;
+        }
+
+        .aqi-label {
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .pm-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .error {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            color: #cc0000;
+        }
+
+        .location {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            text-align: center;
+        }
+
+        .location h2 {
+            color: #667eea;
+            font-size: 1.8rem;
+            margin: 0;
+            display: inline-block;
+        }
+
+        .location .refresh-btn {
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .refresh-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .refresh-btn:hover {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .location .refresh-btn:hover {
+            transform: translateY(-50%);
+        }
+
+        .info-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            white-space: nowrap;
+        }
+
+        .info-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -40%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .modal-content {
+            background: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .advice-section {
+            margin-bottom: 20px;
+        }
+
+        .advice-section h3 {
+            color: #555;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .advice-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .advice-list li {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            font-size: 0.95rem;
+            color: #333;
+        }
+
+        .advice-list li::before {
+            content: "✓ ";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .temperature {
+                font-size: 3rem;
+            }
+
+            .weather-details {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+
+            .modal-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .card-header {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .info-btn {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+
+            .location {
+                padding: 20px;
+                text-align: center;
+            }
+
+            .location h2 {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+            }
+
+            .location .refresh-btn {
+                position: static;
+                transform: none;
+                display: block;
+                width: 100%;
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🌤️ 날씨 & 미세먼지 대시보드</h1>
+            <p>실시간 날씨와 대기질 정보를 한눈에</p>
+        </header>
+
+
+        <div id="location" class="location" style="display: none;">
+            <h2 id="locationName"></h2>
+            <button class="refresh-btn" onclick="refreshData()">🔄 새로고침</button>
+        </div>
+
+        <div id="loading" class="loading">
+            <p>위치 정보를 가져오는 중...</p>
+        </div>
+
+        <div id="error" style="display: none;"></div>
+
+        <div id="dashboard" class="dashboard" style="display: none;">
+            <!-- 날씨 정보 카드 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="icon">🌡️</span>
+                        <span>현재 날씨</span>
+                    </div>
+                    <button class="info-btn" onclick="showWeatherAdvice()">💡 맞춤 조언</button>
+                </div>
+                <div class="weather-main">
+                    <div class="weather-icon" id="weatherIcon"></div>
+                    <div class="temperature" id="temperature"></div>
+                    <div class="weather-description" id="description"></div>
+                </div>
+                <div class="weather-details">
+                    <div class="detail-item">
+                        <div class="detail-label">체감온도</div>
+                        <div class="detail-value" id="feelsLike"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">습도</div>
+                        <div class="detail-value" id="humidity"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">풍속</div>
+                        <div class="detail-value" id="windSpeed"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">기압</div>
+                        <div class="detail-value" id="pressure"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 미세먼지 정보 카드 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="icon">💨</span>
+                        <span>대기질 정보</span>
+                    </div>
+                    <button class="info-btn" onclick="showAirQualityAdvice()">💡 맞춤 조언</button>
+                </div>
+                <div class="air-quality">
+                    <div class="aqi-value" id="aqiValue"></div>
+                    <div class="aqi-label" id="aqiLabel"></div>
+                    <div class="pm-details">
+                        <div class="detail-item">
+                            <div class="detail-label">미세먼지 (PM10)</div>
+                            <div class="detail-value" id="pm10"></div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">초미세먼지 (PM2.5)</div>
+                            <div class="detail-value" id="pm25"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 날씨 대응법 모달 -->
+        <div id="weatherModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>☀️ 날씨 대응법</h2>
+                    <button class="close-btn" onclick="closeWeatherModal()">&times;</button>
+                </div>
+                <div id="weatherAdviceContent"></div>
+            </div>
+        </div>
+
+        <!-- 대기질 대응법 모달 -->
+        <div id="airQualityModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>💨 대기질 대응법</h2>
+                    <button class="close-btn" onclick="closeAirQualityModal()">&times;</button>
+                </div>
+                <div id="airQualityAdviceContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const OPENWEATHER_API_KEY = '997af67b73ea52a1367472490239dbdb'; // OpenWeatherMap API 키
+
+        // 현재 날씨 및 대기질 데이터 저장
+        let currentWeatherData = null;
+        let currentAirQualityData = null;
+
+        // 날씨 아이콘 매핑
+        const weatherIcons = {
+            '01d': '☀️', '01n': '🌙',
+            '02d': '⛅', '02n': '☁️',
+            '03d': '☁️', '03n': '☁️',
+            '04d': '☁️', '04n': '☁️',
+            '09d': '🌧️', '09n': '🌧️',
+            '10d': '🌦️', '10n': '🌧️',
+            '11d': '⛈️', '11n': '⛈️',
+            '13d': '❄️', '13n': '❄️',
+            '50d': '🌫️', '50n': '🌫️'
+        };
+
+        async function getWeatherData(lat, lon) {
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=kr`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('날씨 정보를 가져오는데 실패했습니다.');
+            return await response.json();
+        }
+
+        async function getAirQualityData(lat, lon) {
+            const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('대기질 정보를 가져오는데 실패했습니다.');
+            return await response.json();
+        }
+
+        function getAQIInfo(aqi) {
+            const levels = {
+                1: { label: '좋음', class: 'aqi-good', color: '#00c851' },
+                2: { label: '보통', class: 'aqi-moderate', color: '#ffbb33' },
+                3: { label: '나쁨', class: 'aqi-unhealthy', color: '#ff4444' },
+                4: { label: '매우 나쁨', class: 'aqi-very-unhealthy', color: '#cc0000' },
+                5: { label: '최악', class: 'aqi-very-unhealthy', color: '#990000' }
+            };
+            return levels[aqi] || levels[3];
+        }
+
+        function displayWeatherData(data) {
+            currentWeatherData = data; // 전역 변수에 저장
+            const iconCode = data.weather[0].icon;
+            document.getElementById('weatherIcon').textContent = weatherIcons[iconCode] || '🌤️';
+            document.getElementById('temperature').textContent = `${Math.round(data.main.temp)}°C`;
+            document.getElementById('description').textContent = data.weather[0].description;
+            document.getElementById('feelsLike').textContent = `${Math.round(data.main.feels_like)}°C`;
+            document.getElementById('humidity').textContent = `${data.main.humidity}%`;
+            document.getElementById('windSpeed').textContent = `${data.wind.speed} m/s`;
+            document.getElementById('pressure').textContent = `${data.main.pressure} hPa`;
+            document.getElementById('locationName').textContent = data.name;
+        }
+
+        function displayAirQualityData(data) {
+            currentAirQualityData = data; // 전역 변수에 저장
+            const aqi = data.list[0].main.aqi;
+            const components = data.list[0].components;
+            const aqiInfo = getAQIInfo(aqi);
+
+            document.getElementById('aqiValue').textContent = aqi;
+            document.getElementById('aqiValue').className = `aqi-value ${aqiInfo.class}`;
+
+            const aqiLabel = document.getElementById('aqiLabel');
+            aqiLabel.textContent = aqiInfo.label;
+            aqiLabel.style.background = aqiInfo.color;
+
+            document.getElementById('pm10').textContent = `${Math.round(components.pm10)} μg/m³`;
+            document.getElementById('pm25').textContent = `${Math.round(components.pm2_5)} μg/m³`;
+        }
+
+        async function loadData(lat, lon) {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'none';
+
+                const [weatherData, airQualityData] = await Promise.all([
+                    getWeatherData(lat, lon),
+                    getAirQualityData(lat, lon)
+                ]);
+
+                displayWeatherData(weatherData);
+                displayAirQualityData(airQualityData);
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('location').style.display = 'block';
+                document.getElementById('dashboard').style.display = 'grid';
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerHTML = `
+                    <div class="error">
+                        <h2>⚠️ 오류 발생</h2>
+                        <p>${error.message}</p>
+                        <p style="margin-top: 15px; font-size: 0.9rem; color: #666;">
+                            OpenWeatherMap API 키를 설정했는지 확인해주세요.
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+        function refreshData() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        loadData(position.coords.latitude, position.coords.longitude);
+                    },
+                    error => {
+                        // 위치 정보를 가져올 수 없는 경우 서울 기본값 사용
+                        loadData(37.5665, 126.9780);
+                    }
+                );
+            } else {
+                loadData(37.5665, 126.9780); // 서울 기본값
+            }
+        }
+
+        // 페이지 로드 시 자동 실행
+        window.onload = refreshData;
+
+        // 날씨 대응법 표시
+        function showWeatherAdvice() {
+            if (!currentWeatherData) return;
+
+            const temp = currentWeatherData.main.temp;
+            const weatherMain = currentWeatherData.weather[0].main.toLowerCase();
+            const humidity = currentWeatherData.main.humidity;
+            const windSpeed = currentWeatherData.wind.speed;
+
+            let adviceHTML = '';
+
+            // 온도별 대응법
+            if (temp >= 33) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>🌡️ 폭염 주의</h3>
+                        <ul class="advice-list">
+                            <li>오후 12시~5시 사이 외출을 자제하세요</li>
+                            <li>충분한 수분을 섭취하세요 (1.5~2L/일)</li>
+                            <li>시원한 물로 샤워하고 얇은 옷을 입으세요</li>
+                            <li>어지럼증이나 두통이 있다면 즉시 그늘로 이동하세요</li>
+                            <li>노약자와 어린이는 특히 주의하세요</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (temp >= 28) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>☀️ 더운 날씨</h3>
+                        <ul class="advice-list">
+                            <li>가벼운 옷을 입고 모자를 착용하세요</li>
+                            <li>물을 자주 마시세요</li>
+                            <li>햇빛이 강한 시간대에는 선크림을 바르세요</li>
+                            <li>에어컨 사용 시 적정 온도(26~28°C)를 유지하세요</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (temp >= 20) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>🌤️ 쾌적한 날씨</h3>
+                        <ul class="advice-list">
+                            <li>야외 활동하기 좋은 날씨입니다</li>
+                            <li>가벼운 겉옷을 준비하면 좋습니다</li>
+                            <li>산책이나 운동을 즐겨보세요</li>
+                            <li>환기를 자주 해주세요</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (temp >= 10) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>🍂 선선한 날씨</h3>
+                        <ul class="advice-list">
+                            <li>얇은 외투를 준비하세요</li>
+                            <li>일교차가 큰 계절이니 체온 조절에 유의하세요</li>
+                            <li>따뜻한 차를 마시며 휴식을 취하세요</li>
+                            <li>감기 예방을 위해 손을 자주 씻으세요</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (temp >= 0) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>🧥 추운 날씨</h3>
+                        <ul class="advice-list">
+                            <li>따뜻한 외투와 목도리를 착용하세요</li>
+                            <li>실내외 온도차로 인한 감기를 조심하세요</li>
+                            <li>따뜻한 음료를 자주 마시세요</li>
+                            <li>노약자는 외출 시 특히 주의하세요</li>
+                            <li>난방기 사용 시 환기를 잊지 마세요</li>
+                        </ul>
+                    </div>
+                `;
+            } else {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>❄️ 한파 주의</h3>
+                        <ul class="advice-list">
+                            <li>외출 시 방한복, 장갑, 모자를 반드시 착용하세요</li>
+                            <li>동상 예방을 위해 노출 부위를 최소화하세요</li>
+                            <li>수도관 동파를 방지하세요</li>
+                            <li>혈관질환자는 외출을 자제하세요</li>
+                            <li>보일러 안전점검을 하세요</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // 날씨 상태별 대응법
+            if (weatherMain.includes('rain') || weatherMain.includes('drizzle')) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>🌧️ 비 오는 날</h3>
+                        <ul class="advice-list">
+                            <li>우산을 꼭 챙기세요</li>
+                            <li>미끄러운 길을 조심하세요</li>
+                            <li>방수 신발을 착용하세요</li>
+                            <li>운전 시 시야 확보에 주의하세요</li>
+                            <li>천둥번개가 칠 때는 높은 곳이나 나무 아래를 피하세요</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (weatherMain.includes('snow')) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>⛄ 눈 오는 날</h3>
+                        <ul class="advice-list">
+                            <li>미끄럼 방지 신발을 착용하세요</li>
+                            <li>보폭을 좁게 걸으세요</li>
+                            <li>운전 시 체인을 준비하고 속도를 줄이세요</li>
+                            <li>주차된 차량의 눈을 미리 치워두세요</li>
+                            <li>낙상 사고에 특히 주의하세요</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (weatherMain.includes('thunderstorm')) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>⚡ 천둥번개</h3>
+                        <ul class="advice-list">
+                            <li>가능한 실내로 대피하세요</li>
+                            <li>나무나 전봇대 아래를 피하세요</li>
+                            <li>금속 물체를 만지지 마세요</li>
+                            <li>전자제품의 플러그를 뽑아두세요</li>
+                            <li>낮은 자세를 취하세요</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // 습도별 대응법
+            if (humidity >= 70) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>💧 높은 습도</h3>
+                        <ul class="advice-list">
+                            <li>제습기나 에어컨을 사용하세요</li>
+                            <li>통풍이 잘 되는 옷을 입으세요</li>
+                            <li>곰팡이 예방을 위해 환기하세요</li>
+                            <li>음식물 관리에 주의하세요</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (humidity <= 30) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>🏜️ 낮은 습도 (건조)</h3>
+                        <ul class="advice-list">
+                            <li>가습기를 사용하거나 젖은 빨래를 널어두세요</li>
+                            <li>물을 자주 마시세요</li>
+                            <li>피부 보습에 신경 쓰세요</li>
+                            <li>실내 식물을 키우는 것도 도움이 됩니다</li>
+                            <li>정전기 방지에 유의하세요</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // 강풍
+            if (windSpeed >= 10) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>💨 강풍 주의</h3>
+                        <ul class="advice-list">
+                            <li>간판이나 낙하물을 조심하세요</li>
+                            <li>우산 사용이 어려울 수 있습니다</li>
+                            <li>외부 물건을 고정하거나 실내로 옮기세요</li>
+                            <li>고층 건물이나 해안가는 피하세요</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            document.getElementById('weatherAdviceContent').innerHTML = adviceHTML;
+            document.getElementById('weatherModal').style.display = 'block';
+        }
+
+        // 대기질 대응법 표시
+        function showAirQualityAdvice() {
+            if (!currentAirQualityData) return;
+
+            const aqi = currentAirQualityData.list[0].main.aqi;
+            const components = currentAirQualityData.list[0].components;
+            const pm10 = Math.round(components.pm10);
+            const pm25 = Math.round(components.pm2_5);
+
+            let adviceHTML = '';
+
+            // AQI 레벨별 대응법
+            if (aqi === 1) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>😊 좋음 (AQI ${aqi})</h3>
+                        <ul class="advice-list">
+                            <li>야외 활동하기 좋은 날입니다</li>
+                            <li>창문을 열어 환기하세요</li>
+                            <li>산책이나 운동을 즐겨보세요</li>
+                            <li>특별한 주의사항이 없습니다</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (aqi === 2) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>🙂 보통 (AQI ${aqi})</h3>
+                        <ul class="advice-list">
+                            <li>일반적인 야외 활동이 가능합니다</li>
+                            <li>호흡기 질환자는 장시간 외출 시 주의하세요</li>
+                            <li>환기는 가능하지만 장시간은 피하세요</li>
+                            <li>특별히 민감한 그룹은 주의가 필요합니다</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (aqi === 3) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>😷 나쁨 (AQI ${aqi})</h3>
+                        <ul class="advice-list">
+                            <li>외출 시 보건용 마스크(KF80 이상)를 착용하세요</li>
+                            <li>장시간 야외 활동을 자제하세요</li>
+                            <li>호흡기·심혈관 질환자, 어린이, 노약자는 외출을 삼가세요</li>
+                            <li>실내 공기청정기를 가동하세요</li>
+                            <li>물을 충분히 마시세요</li>
+                            <li>창문을 닫고 외출 후 손발을 깨끗이 씻으세요</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (aqi === 4) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>😨 매우 나쁨 (AQI ${aqi})</h3>
+                        <ul class="advice-list">
+                            <li>가급적 외출을 자제하세요</li>
+                            <li>외출 시 KF94 이상 마스크를 반드시 착용하세요</li>
+                            <li>모든 실외 활동을 중단하세요</li>
+                            <li>호흡기·심혈관 질환자는 실외 활동을 금지하세요</li>
+                            <li>창문을 완전히 닫고 공기청정기를 최대로 가동하세요</li>
+                            <li>귀가 후 즉시 샤워하고 옷을 갈아입으세요</li>
+                            <li>과일과 채소를 충분히 섭취하세요</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (aqi === 5) {
+                adviceHTML += `
+                    <div class="advice-section">
+                        <h3>☠️ 위험 (AQI ${aqi})</h3>
+                        <ul class="advice-list">
+                            <li>외출을 절대 삼가세요</li>
+                            <li>불가피한 외출 시 KF94 마스크 필수 착용</li>
+                            <li>모든 실외 활동을 즉시 중단하세요</li>
+                            <li>어린이, 노약자, 환자는 실내에만 머무세요</li>
+                            <li>공기청정기를 최대로 가동하세요</li>
+                            <li>건강 이상 시 즉시 병원을 방문하세요</li>
+                            <li>수분을 충분히 섭취하세요</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // 미세먼지 수치별 추가 정보
+            adviceHTML += `
+                <div class="advice-section">
+                    <h3>📊 현재 수치 정보</h3>
+                    <ul class="advice-list">
+                        <li>PM10 (미세먼지): ${pm10} μg/m³</li>
+                        <li>PM2.5 (초미세먼지): ${pm25} μg/m³</li>
+                    </ul>
+                </div>
+            `;
+
+            // 일반적인 미세먼지 대응법
+            adviceHTML += `
+                <div class="advice-section">
+                    <h3>💡 일반 대응 수칙</h3>
+                    <ul class="advice-list">
+                        <li>외출 후에는 손, 발, 얼굴을 깨끗이 씻으세요</li>
+                        <li>물과 비타민C가 풍부한 과일을 섭취하세요</li>
+                        <li>대기오염이 심한 도로변, 공사장은 피하세요</li>
+                        <li>대중교통 이용을 권장합니다</li>
+                        <li>실내 물청소를 자주 하세요</li>
+                    </ul>
+                </div>
+            `;
+
+            document.getElementById('airQualityAdviceContent').innerHTML = adviceHTML;
+            document.getElementById('airQualityModal').style.display = 'block';
+        }
+
+        // 모달 닫기
+        function closeWeatherModal() {
+            document.getElementById('weatherModal').style.display = 'none';
+        }
+
+        function closeAirQualityModal() {
+            document.getElementById('airQualityModal').style.display = 'none';
+        }
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function (event) {
+            const weatherModal = document.getElementById('weatherModal');
+            const airQualityModal = document.getElementById('airQualityModal');
+
+            if (event.target === weatherModal) {
+                closeWeatherModal();
+            }
+            if (event.target === airQualityModal) {
+                closeAirQualityModal();
+            }
+        }
+    </script>
+</body>
