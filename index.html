@@ -1,9 +1,72 @@
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>날씨 & 미세먼지 대시보드</title>
+
+    <!-- Primary Meta Tags -->
+    <title>실시간 날씨 & 미세먼지 대시보드 | 현재 날씨와 대기질 정보</title>
+    <meta name="title" content="실시간 날씨 & 미세먼지 대시보드 | 현재 날씨와 대기질 정보">
+    <meta name="description"
+        content="실시간 날씨, 미세먼지, 초미세먼지 정보를 한눈에 확인하세요. 현재 위치 기반 날씨 정보, 대기질 지수(AQI), 맞춤형 건강 조언을 제공합니다.">
+    <meta name="keywords" content="날씨, 미세먼지, 초미세먼지, 대기질, AQI, 실시간 날씨, 날씨 정보, 기상정보, 공기질, PM10, PM2.5, 날씨 대시보드">
+    <meta name="author" content="Weather Dashboard">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Korean">
+    <meta name="revisit-after" content="1 days">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://weather-dash-board-one.vercel.app/">
+    <meta property="og:title" content="실시간 날씨 & 미세먼지 대시보드">
+    <meta property="og:description" content="실시간 날씨, 미세먼지, 초미세먼지 정보를 한눈에 확인하세요. 현재 위치 기반 날씨 정보와 맞춤형 건강 조언을 제공합니다.">
+    <meta property="og:image" content="https://weather-dash-board-one.vercel.app/og-image.png">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:site_name" content="날씨 & 미세먼지 대시보드">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://weather-dash-board-one.vercel.app/">
+    <meta property="twitter:title" content="실시간 날씨 & 미세먼지 대시보드">
+    <meta property="twitter:description" content="실시간 날씨, 미세먼지, 초미세먼지 정보를 한눈에 확인하세요.">
+    <meta property="twitter:image" content="https://weather-dash-board-one.vercel.app/og-image.png">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://weather-dash-board-one.vercel.app/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌤️</text></svg>">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "날씨 & 미세먼지 대시보드",
+      "description": "실시간 날씨, 미세먼지, 초미세먼지 정보를 제공하는 웹 애플리케이션",
+      "url": "https://weather-dash-board-one.vercel.app/",
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "KRW"
+      },
+      "featureList": [
+        "실시간 날씨 정보",
+        "미세먼지(PM10) 측정",
+        "초미세먼지(PM2.5) 측정",
+        "대기질 지수(AQI)",
+        "위치 기반 정보",
+        "날씨별 맞춤 조언"
+      ],
+      "inLanguage": "ko-KR",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "softwareVersion": "1.0"
+    }
+    </script>
     <style>
         * {
             margin: 0;
@@ -423,18 +486,18 @@
         </header>
 
 
-        <div id="location" class="location" style="display: none;">
+        <div id="location" class="location" style="display: none;" role="region" aria-label="위치 정보">
             <h2 id="locationName"></h2>
-            <button class="refresh-btn" onclick="refreshData()">🔄 새로고침</button>
+            <button class="refresh-btn" onclick="refreshData()" aria-label="날씨 정보 새로고침">🔄 새로고침</button>
         </div>
 
-        <div id="loading" class="loading">
+        <div id="loading" class="loading" role="status" aria-live="polite">
             <p>위치 정보를 가져오는 중...</p>
         </div>
 
-        <div id="error" style="display: none;"></div>
+        <div id="error" style="display: none;" role="alert" aria-live="assertive"></div>
 
-        <div id="dashboard" class="dashboard" style="display: none;">
+        <main id="dashboard" class="dashboard" style="display: none;" role="main">
             <!-- 날씨 정보 카드 -->
             <div class="card">
                 <div class="card-header">
@@ -493,7 +556,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
 
 
         <!-- 날씨 대응법 모달 -->
